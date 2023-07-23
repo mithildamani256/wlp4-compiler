@@ -1,0 +1,234 @@
+
+<!-- saved from url=(0061)https://student.cs.uwaterloo.ca/~cs241/wlp4/WLP4tutorial.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>CS 241 - WLP4 Programming Language Tutorial</title></head>
+<body data-new-gr-c-s-check-loaded="14.1113.0" data-gr-ext-installed="">
+<h1><a href="https://student.cs.uwaterloo.ca/~cs241/">CS 241</a> - WLP4 Programming Language Tutorial</h1>
+
+<h3>WLP4 in a nutshell for C or C++ Programmers</h3>
+
+A WLP4 program is a sequence of C++ functions (we use the terms 'procedure'
+and 'function' interchangeably in this document), the last of which is is the
+main function and is called <tt>wain</tt>.  Functions may have any number of
+parameters, but the main function <tt>wain</tt> has two parameters. The type of
+the first parameter of <tt>wain</tt> is either <tt>int</tt> or <tt>int*</tt>.
+The type of the second parameter of <tt>wain</tt> is <tt>int</tt>. The type of
+the result of every procedure is <tt>int</tt>.
+<p>
+Declarations,  control structures and statements that may be 
+used in WLP4 are restricted to:
+</p><ul>
+<li><tt>int </tt> or <tt>int*</tt><i>(declaration of a single int or int* variable with an unsigned integer constant or NULL initializer; all declarations in WLP4 must precede all statements and control structures; every declaration must include an integer constant or NULL initializer)</i>
+</li><li><tt>if </tt><i>(must have an else clause)</i><tt>
+</tt></li><li><tt>while 
+</tt></li><li><tt>return </tt><i>(must be the last statement in function)</i><tt>
+</tt></li><li><tt>println
+</tt></li><li><tt>=</tt> <i>(i.e. assignment)</i><tt>
+</tt></li><li><tt>delete []</tt> <i>(i.e. deallocation)</i>
+</li></ul>
+The clauses of <tt>if</tt> and <tt>while</tt>
+containing statements must be enclosed in 
+braces (i.e. {}).
+<p>
+Expressions may contain only variable names,
+integers (written in decimal without a sign), function calls, memory allocation
+(i.e., operator <tt>new</tt>),
+unary <tt>&amp;</tt> and <tt>*</tt>, and
+the binary (two operand) versions of
+the following operators:
+</p><pre>    + - * / % == != &lt;= &gt;= &lt; &gt;
+</pre>
+Arrays of consecutive integers may be dynamically allocated using
+<tt>new</tt> and <tt>delete []</tt>, but their elements can be accessed only
+using pointer dereferences, because
+WLP4 does not include the C++ operator <tt>[]</tt>.
+The // notation (and only the // notation) may
+be used for comments.
+
+<h3>Example WLP4 Program</h3>
+
+<pre>//
+// WLP4 Program to compute:
+//   a^b if 0 &lt;= a,b &lt; 10
+//   -1 otherwise
+//
+
+int wain(int a, int b) {
+   int counter = 0;
+   int product = 0;
+   product = 0-1;  // only binary minus
+   if (a &gt;= 0) {
+      if (b &gt;= 0) {
+         if (a &lt; 10) {
+            if (b &lt; 10) {
+               product = 1;
+               counter = 0;
+               while (counter &lt; b) {
+                  product = product * a;
+                  counter = counter + 1;
+               }
+            } else {} // must have else
+         } else {} 
+      } else {} 
+   } else {}
+   return product;
+}
+</pre>
+
+<h2>Notable differences between WLP4 and C/C++</h2>
+<h3>Functions</h3>
+Functions in WLP4 can only have one return statement, which must be at the very end.
+<pre>int max(int a, int b){
+  if (a &gt; b){
+    return a; // cannot return here
+  } else {
+    return b; // or here
+  }
+  // must return here
+}
+</pre>
+Fixed for WLP4, the above code looks like this:
+
+<pre>int max(int a, int b){
+  int answer = 0;
+  if (a &gt; b){
+    answer = a;
+  } else {
+    answer = b;
+  }
+  return answer;
+}
+</pre>
+<h3>Local Variable Declarations</h3>
+Within a function body, all the local variables must be declared at the beginning of the function, before any other code.
+<br>
+Variables can only be initialized to a single number or NULL.
+<pre>int average(int a, int b){
+  int sum = 0;
+  sum = a + b;
+  int average = sum / 2;
+  return average;
+}
+</pre>
+
+Fixed for WLP4:
+
+<pre>int average(int a, int b){
+  int sum = 0;
+  int average = 0;
+  sum = a + b;
+  average = sum / 2;
+  return average;
+}
+</pre>
+<h3>if-statements</h3>
+
+if-statements must have an else statement (though it can be empty).
+
+The conditions for an if or a while must be singular - 
+logical AND (&amp;&amp;) and OR (||) do not exist in WLP4.
+
+There is no else if in WLP4.
+<pre>int max3(int a, int b, int c){
+  int answer = 0;
+  if (a &gt; b &amp;&amp; a &gt; c){ // cannot use "&amp;&amp;"
+    answer = a;
+  } else if (b &gt; a &amp;&amp; b &gt; c){ // or "else if"
+    answer = b;
+  } else {
+    answer = c;
+  }
+  return answer;
+}
+</pre>
+
+Fixed for WLP4:
+
+<pre>int max3(int a, int b, int c){
+  int answer = 0;
+  if (a &gt; b) {
+    if (a &gt; c) {
+      answer = a;
+    } else {
+      answer = c;
+    }
+  } else {
+    if (b &gt; c){
+      answer = b;
+    } else {
+      answer = c;
+    }
+  }
+  return answer;
+}
+</pre>
+
+<h3>Arrays</h3>
+There are no "arrays" in WLP4, though pointers can be dereferenced to achieve the same effect.
+<pre>int getlast(int* begin, int size){
+  return begin[size - 1]; 
+}
+</pre>
+
+Fixed for WLP4:
+
+<pre>int getlast(int* begin, int size){
+  return *(begin + size - 1); 
+}
+</pre>
+
+Blocks of memory can be allocated
+using <code>new</code> and
+deallocated using <code>delete</code>
+just like in C++.
+The expression 
+<code>new int[n]</code>
+will allocate a block of n
+32-bit words, each of which holds 
+a single int, and return a pointer
+to the start of the block.
+You can then treat this block 
+as an "array of ints" by
+accessing it through the pointer.
+
+<pre>int wain(int* begin, int size){
+  int* copy = NULL;
+  int i = 0;
+  copy = new int[size];
+  while(i &lt; size) {
+    *(copy+i) = *(begin+i);
+    i = i + 1;
+  }
+  delete [] copy;
+  return 0;
+}
+</pre>
+
+The code above does nothing useful
+(it creates a copy of an array and then
+immediately deletes it) but demonstrates
+how to use <code>new</code>
+and <code>delete</code> in WLP4.
+
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+  div.grammarly-desktop-integration {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+    user-select:none;
+  }
+
+  div.grammarly-desktop-integration:before {
+    content: attr(data-content);
+  }
+</style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>

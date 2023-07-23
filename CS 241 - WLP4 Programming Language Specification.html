@@ -1,0 +1,314 @@
+
+<!-- saved from url=(0053)https://student.cs.uwaterloo.ca/~cs241/wlp4/WLP4.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CS 241 - WLP4 Programming Language Specification</title>
+  </head>
+  <body data-new-gr-c-s-check-loaded="14.1113.0" data-gr-ext-installed="">
+
+<h1><a href="https://student.cs.uwaterloo.ca/~cs241/">CS 241</a> - WLP4 Programming Language Specification</h1>
+The WLP4 programming language contains
+a strict subset of the features of C++. A WLP4 source file contains 
+a WLP4 program, which is a sequence of procedure definitions, ending with the main procedure
+<tt>wain</tt>.
+<h3>Lexical Syntax</h3>
+A WLP4 program is a sequence of <i>tokens</i>
+optionally separated by <i>white space</i> consisting
+of spaces, newlines, or comments.  Every valid token
+is one of the following:
+<ul>
+<li>ID: a string consisting of a letter (in the range a-z or A-Z) followed by 
+zero or more letters and digits (in the range 0-9), but not equal to
+"wain", "int", "if", "else", "while", "println", "return", "NULL", "new" or "delete".
+</li><li>NUM: a string
+consisting of a single digit (in the range 0-9) or
+two or more digits, the first of which is not 0; the numeric value of a NUM
+token cannot exceed 2<sup>31</sup>-1
+</li><li>LPAREN:  the string "("
+</li><li>RPAREN:  the string ")"
+</li><li>LBRACE:  the string "{"
+</li><li>RBRACE:  the string "}"
+</li><li>RETURN:  the string "return" (in lower case)
+</li><li>IF:  the string "if"
+</li><li>ELSE:  the string "else"
+</li><li>WHILE:  the string "while"
+</li><li>PRINTLN: the string "println"
+</li><li>WAIN: the string "wain"
+</li><li>BECOMES: the string "="
+</li><li>INT: the string "int"
+</li><li>EQ: the string "=="
+</li><li>NE: the string "!="
+</li><li>LT: the string "&lt;"
+</li><li>GT: the string "&gt;"
+</li><li>LE: the string "&lt;="
+</li><li>GE: the string "&gt;="
+</li><li>PLUS: the string "+"
+</li><li>MINUS: the string "-"
+</li><li>STAR: the string "*"
+</li><li>SLASH: the string "/"
+</li><li>PCT: the string "%"
+</li><li>COMMA: the string ","
+</li><li>SEMI: the string ";"
+</li><li>NEW: the string "new"
+</li><li>DELETE: the string "delete"
+</li><li>LBRACK: the string "["
+</li><li>RBRACK: the string "]"
+</li><li>AMP: the string "&amp;"
+</li><li>NULL: the string "NULL"
+</li></ul>
+<p>Tokens that contain letters are case-sensitive; for example, <tt>int</tt>
+is an INT token, while <tt>Int</tt> is not.</p>
+
+White space consists of any sequence of the following:
+<ul>
+<li>SPACE: (ascii 32)
+</li><li>TAB: (ascii 9)
+</li><li>NEWLINE: (ascii 10)
+</li><li>COMMENT: the string "//" followed by all the characters up to and including the next
+NEWLINE
+</li></ul>
+<p>WLP4 programs are constructed by <i>tokenizing</i> (also called <i>scanning</i> or <i>lexing</i>) an ASCII string. To ensure a unique sequence of tokens is produced, the sequence of tokens is constructed by repeatedly choosing the <i>longest prefix</i> of the input that is either a token or white space. If the prefix is a token, it is added to the end of the WLP4 program token sequence. Then the prefix is discarded, and this process repeats with the remainder of the ASCII string input. This continues until either the end of the input is reached, or no prefix of the remaining input is a token or white space. In the latter case, the ASCII string is <i>lexically invalid</i> and does not represent a WLP4 program.</p>
+<h3><a name="cfg"></a>Context-free Syntax</h3>
+A context-free grammar for a valid WLP4 program is:
+<ul>
+<li>terminal symbols:  the set of valid tokens above
+</li><li>nonterminal symbols: {procedures, procedure, main, params, paramlist, type, dcl, dcls, statements, lvalue, expr, statement, test, term, factor, arglist}
+</li><li>start symbol:  procedures
+</li><li>production rules:
+<pre>procedures → procedure procedures
+procedures → main
+procedure → INT ID LPAREN params RPAREN LBRACE dcls statements RETURN expr SEMI RBRACE 
+main → INT WAIN LPAREN dcl COMMA dcl RPAREN LBRACE dcls statements RETURN expr SEMI RBRACE 
+params →
+params → paramlist
+paramlist → dcl
+paramlist → dcl COMMA paramlist
+type → INT
+type → INT STAR
+dcls → 
+dcls → dcls dcl BECOMES NUM SEMI
+dcls → dcls dcl BECOMES NULL SEMI
+dcl → type ID
+statements →
+statements → statements statement  
+statement → lvalue BECOMES expr SEMI
+statement → IF LPAREN test RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE 
+statement → WHILE LPAREN test RPAREN LBRACE statements RBRACE 
+statement → PRINTLN LPAREN expr RPAREN SEMI
+statement → DELETE LBRACK RBRACK expr SEMI
+test → expr EQ expr  
+test → expr NE expr  
+test → expr LT expr 
+test → expr LE expr  
+test → expr GE expr  
+test → expr GT expr 
+expr → term 
+expr → expr PLUS term 
+expr → expr MINUS term 
+term → factor 
+term → term STAR factor 
+term → term SLASH factor 
+term → term PCT factor 
+factor → ID  
+factor → NUM  
+factor → NULL  
+factor → LPAREN expr RPAREN  
+factor → AMP lvalue
+factor → STAR factor
+factor → NEW INT LBRACK expr RBRACK
+factor → ID LPAREN RPAREN
+factor → ID LPAREN arglist RPAREN
+arglist → expr
+arglist → expr COMMA arglist
+lvalue → ID  
+lvalue → STAR factor
+lvalue → LPAREN lvalue RPAREN  
+</pre>
+</li></ul>
+<h3>Context-sensitive Syntax</h3>
+A procedure is any string derived from <tt>procedure</tt> or <tt>main</tt>.
+The name of the procedure is the <tt>ID</tt> in the grammar rule whose
+left-hand side is <tt>procedure</tt>.  The name of the procedure derived from
+<tt>main</tt> is <tt>wain</tt>.  A procedure is said to be declared from the
+first occurrence of its name in the string that makes
+up that procedure (i.e., once the name has been encountered in the procedure's
+header).  A procedure cannot be called until it has been declared (formally,
+the ID in <tt>factor → ID LPAREN RPAREN</tt> or
+<tt>factor → ID LPAREN arglist RPAREN</tt> must be the name of a
+procedure that has been declared).  Thus,
+a procedure may call itself recursively, and a procedure may call procedures
+declared before itself, but a procedure may not call procedures declared
+after itself.  Consequently, there is no mutual recursion in WLP4.  Two
+procedures may not have the same name.  The procedure <tt>wain</tt> may not
+call itself recursively.
+
+<p>
+Any ID in a sequence derived from <tt>dcl</tt> within a procedure <tt>p</tt>
+is said to be <i>declared in p</i>.
+Any ID derived from
+<tt>factor</tt> or <tt>lvalue</tt> within p is said to be <i>used in p</i>.
+Any particular string <i>x</i> that is an ID may be declared at most once within
+a given procedure.  The same ID may be declared in different procedures.
+A string <i>x</i> which is an ID may be used in any number of places, 
+but only if the same string <i>x</i> is declared.  String comparisons
+are case sensitive; for example, "FOO" and "foo" are distinct.
+
+</p><p>
+An ID may have the same name as a procedure.  If an ID <tt>x</tt> is declared
+in a procedure <tt>p</tt>, all occurrences of <tt>x</tt> within <tt>p</tt>
+refer to the ID x, even if a procedure named <tt>x</tt> has been declared.
+The same is true in the special case that <tt>p</tt> = <tt>x</tt>:  a declared
+ID may have the same name as the procedure that contains it; in this case, all
+occurrences of ID refer to the variable, not the procedure.
+
+</p><p>
+Every procedure has a signature, which is a list of strings, each of which is
+either <tt>int</tt> or <tt>int*</tt>.  The signature of a procedure is the 
+sequence of strings <tt>int</tt> or <tt>int*</tt> that is derived from
+<tt>params</tt>.  Note that this sequence may be empty.
+
+</p><p>An ID whose name occurs in a sequence derived from <tt>dcl</tt> has a <i>type</i>, which is either <tt>int</tt> or <tt>int*</tt>:</p>
+<ul>
+    <li>The type of an ID is <tt>int</tt> if the <tt>dcl</tt> in which the ID is
+declared derives a sequence containing a <tt>type</tt> that derives <tt>INT</tt>.
+    </li><li>The type of an ID is <tt>int*</tt> if the <tt>dcl</tt> in which the ID is
+declared derives a sequence containing a <tt>type</tt> that derives <tt>INT STAR</tt>.
+</li></ul>
+<p>
+Other IDs do not have types and are said to be <i>untyped</i>.
+</p>
+
+<p>
+Instances of the tokens NUM, NULL and the non-terminals <tt>factor</tt>, <tt>term</tt>, 
+<tt>expr</tt>, and <tt>lvalue</tt> also have a <i>type</i>, which is either <tt>int</tt> or <tt>int*</tt>.
+Types must satisfy the following rules:
+</p>
+<ul>
+<li>The type of a NUM is <tt>int</tt>.
+</li><li>The type of a NULL token is <tt>int*</tt>.
+</li><li>The type of a <tt>factor</tt> deriving NUM or NULL is the same as the type of that token.</li>
+<li>When <tt>factor</tt> derives ID, the derived ID must have a type, and the type of the <tt>factor</tt> is the same as the type of the ID.</li>
+<li>When <tt>lvalue</tt> derives ID, the derived ID must have a type, and the type of the <tt>lvalue</tt> is the same as the type of the ID.</li>
+<li>The type of a <tt>factor</tt> deriving LPAREN <tt>expr</tt> RPAREN is the same as the type of the <tt>expr</tt>.
+</li><li>The type of an <tt>lvalue</tt> deriving LPAREN <tt>lvalue</tt> RPAREN is the same as the type of the derived <tt>lvalue</tt>.
+</li><li>The type of a <tt>factor</tt> deriving AMP <tt>lvalue</tt> is <tt>int*</tt>. The type of the derived lvalue (i.e. the one preceded by AMP) must be <tt>int</tt>.
+</li><li>The type of a <tt>factor</tt> or <tt>lvalue</tt> deriving STAR <tt>factor</tt> is <tt>int</tt>. The type of the derived factor (i.e. the one preceded by STAR) must be <tt>int*</tt>.
+</li><li>The type of a <tt>factor</tt> deriving NEW INT LBRACK <tt>expr</tt> RBRACK is <tt>int*</tt>. The type of the derived <tt>expr</tt> must be <tt>int</tt>.
+</li><li>The type of a <tt>factor</tt> deriving ID LPAREN RPAREN is <tt>int</tt>.
+The procedure whose name is ID must have an empty signature.
+</li><li>The type of a <tt>factor</tt> deriving ID LPAREN <tt>arglist</tt> RPAREN is
+<tt>int</tt>.  The procedure whose name is ID must have a signature whose
+length is equal to the number of <tt>expr</tt> strings (separated by COMMA)
+that are derived from <tt>arglist</tt>.  Further the types of these
+<tt>expr</tt> strings must exactly match, in order, the types in the
+procedure's signature.
+</li><li>The type of a <tt>term</tt> deriving <tt>factor</tt> is the same as the type of the derived <tt>factor</tt>.
+</li><li>The type of a <tt>term</tt> directly deriving anything other than just <tt>factor</tt> is <tt>int</tt>. The <tt>term</tt> and <tt>factor</tt> directly derived from such a <tt>term</tt> must have type <tt>int</tt>.
+</li><li>The type of an <tt>expr</tt> deriving <tt>term</tt> is the same as the type of the derived <tt>term</tt>.
+</li><li>When <tt>expr</tt> derives <tt>expr</tt> PLUS <tt>term</tt>:
+<ul>
+    <li>The derived <tt>expr</tt> and the derived <tt>term</tt> may both have type <tt>int</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int</tt>. 
+    </li><li>The derived <tt>expr</tt> may have type <tt>int*</tt> and the derived <tt>term</tt> may have type <tt>int</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int*</tt>. 
+    </li><li>The derived <tt>expr</tt> may have type <tt>int</tt> and the derived <tt>term</tt> may have type <tt>int*</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int*</tt>. 
+</li></ul>
+</li><li>When <tt>expr</tt> derives <tt>expr</tt> MINUS <tt>term</tt>:
+<ul>
+    <li>The derived <tt>expr</tt> and the derived <tt>term</tt> may both have type <tt>int</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int</tt>. 
+    </li><li>The derived <tt>expr</tt> may have type <tt>int*</tt> and the derived <tt>term</tt> may have type <tt>int</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int*</tt>. 
+    </li><li>The derived <tt>expr</tt> and the derived <tt>term</tt> may both have type <tt>int*</tt>, in which case the type of the <tt>expr</tt> deriving them is <tt>int</tt>. 
+</li></ul>
+</li><li>The second <tt>dcl</tt> in the sequence directly derived from <tt>main</tt> must derive a <tt>type</tt> that derives INT.
+</li><li>The <tt>expr</tt> in the sequence directly derived from <tt>procedure</tt> must have type <tt>int</tt>.
+</li><li>The <tt>expr</tt> in the sequence directly derived from <tt>main</tt> must have type <tt>int</tt>.
+</li><li>When <tt>statement</tt> derives <tt>lvalue</tt> BECOMES <tt>expr</tt> SEMI,
+the derived <tt>lvalue</tt> and the derived <tt>expr</tt> must have the same type.
+</li><li>When <tt>statement</tt> derives PRINTLN LPAREN <tt>expr</tt> RPAREN SEMI,
+the derived <tt>expr</tt> must have type <tt>int</tt>.
+</li><li>When <tt>statement</tt> derives DELETE LBRACK RBRACK <tt>expr</tt> SEMI,
+the derived <tt>expr</tt> must have type <tt>int*</tt>.
+</li><li>Whenever <tt>test</tt> directly derives a sequence containing two <tt>expr</tt>s,
+they must both
+have the same type.
+</li><li>When <tt>dcls</tt> derives <tt>dcls</tt> <tt>dcl</tt> BECOMES NUM SEMI, the derived <tt>dcl</tt> must derive a sequence containing a <tt>type</tt> that derives INT.
+</li><li>When <tt>dcls</tt> derives <tt>dcls</tt> <tt>dcl</tt> BECOMES NULL SEMI, the derived <tt>dcl</tt> must derive a sequence containing a <tt>type</tt> that derives INT STAR.
+</li></ul>
+<h3>Semantics</h3>
+Any WLP4 program that obeys the lexical, context-free, and context-sensitive syntax rules above is a also a valid C++
+program fragment.  The meaning of the WLP4 program is defined to be identical to
+that of the C++ program formed by inserting the WLP4 program at the indicated location
+in one of the following C++ program shells:
+<ul>
+    <li>When the first <tt>dcl</tt> in the sequence directly derived from <tt>procedure</tt> derives a <tt>type</tt> that derives INT, the WLP4 program is inserted into the following shell:
+<pre>int wain(int, int);
+void println(int);
+
+// === Insert WLP4 Program Here ===
+
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+int main(int argc, char** argv) {
+  int a,b,c;
+  printf("Enter first integer: ");
+  scanf("%d", &amp;a);
+  printf("Enter second integer: ");
+  scanf("%d", &amp;b);
+  c = wain(a,b);
+  printf("wain returned %d\n", c);
+  return 0;
+}
+void println(int x){
+   printf("%d\n",x);
+}
+</pre>
+    </li><li>When the first <tt>dcl</tt> in the sequence directly derived from <tt>procedure</tt> derives a <tt>type</tt> that derives INT STAR, the WLP4 program is inserted into the following shell:
+<pre>int wain(int*, int);
+void println(int);
+
+// === Insert WLP4 Program Here ===
+
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+int main(int argc, char** argv) {
+  int l, c;
+  int* a;
+  printf("Enter length of array: ");
+  scanf("%d", &amp;l);
+  a = (int*) malloc(l*sizeof(int));
+  for(int i = 0; i &lt; l; i++) {
+    printf("Enter value of array element %d: ", i);
+    scanf("%d", a+i);
+  }
+  c = wain(a,l);
+  printf("wain returned %d\n", c);
+  return 0;
+}
+void println(int x){
+   printf("%d\n",x);
+}
+</pre>
+</li><li> The expected behaviour of these programs should be identical to g++ compiler with no optimization flags on.
+
+</li></ul>
+
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+  div.grammarly-desktop-integration {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+    user-select:none;
+  }
+
+  div.grammarly-desktop-integration:before {
+    content: attr(data-content);
+  }
+</style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
